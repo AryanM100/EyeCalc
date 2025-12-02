@@ -5,15 +5,22 @@ import math
 
 a = ""
 text = ""
+first = False
 z, x, a = 0, 0, 0
 z1, x1, a1 = 0, 0, 0
 z2, x2, a2 = 0, 0, 0
 z3, x3, a3 = 0, 0, 0
+dn, do = 0, 0
 
 try:
   while(True):
     a = text
     text = pc.paste().strip()
+
+    if(first == False):
+      first = True
+      continue
+
     if(text != a):
       b = text.split()
       if(b.count("/execute") == 1 and len(b) == 11 and (c for c in b[6:] if type(float(c)) == '<class \'float\'>')):
@@ -31,7 +38,12 @@ try:
 
           z3 = (m2 * z2 - m1 * z1 + x1 - x2) / (m2 - m1);
           x3 = m1 * (z3 - z1) + x1
-          print(x3, z3)
+
+          do = math.sqrt((x3 - x1)**2 + (z3 - z1)**2)
+          dn = do / 8
+
+          print("Nether Coords : " + str(round(x3 / 8)) + ", " + str(round(z3 / 8)) + " Distance : " + str(round(dn)))
+          print("Overworld Coords : " + str(round(x3)) + ", " + str(round(z3)) + " Distance : " + str(round(do)))
           
           z1, x1, a1 = 0, 0, 0
           z2, x2, a2 = 0, 0, 0

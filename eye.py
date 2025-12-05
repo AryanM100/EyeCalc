@@ -2,7 +2,6 @@
 
 import pyperclip as pc
 import tkinter as tk
-from tkinter import ttk
 import math
 
 a, text = "", ""
@@ -14,11 +13,45 @@ dn, do = 0, 0
 head = ["X-Coord", "Z-Coord", "Angle", "Distance"]
 d = pc.paste().strip().split()
 
-if(d.count("/execute") == 1 and len(d) == 11 and (c for c in d[6:] if type(float(c)) == '<class \'float\'>')):
-  pc.copy('')
+def setup():
+  if(d.count("/execute") == 1 and len(d) == 11 and (c for c in d[6:] if type(float(c)) == '<class \'float\'>')):
+    pc.copy("")
+
+  for i in range(0,4):
+    for j in range(0, 7):
+      if(j == 0):
+        c1 = tk.Label(root, width=15, bg="#3F3F3F", text=head[i], anchor="center", fg="#fc7474")
+        c1.grid(row=j, column=i)
+      elif(j == 3):
+        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Nether :", anchor="center", fg="lime").grid(row=3, column=0)
+      elif(j == 5):
+        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Overworld :", anchor="center", fg="yellow").grid(row=5, column=0)
+      else:
+        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
+        c1.grid(row=j, column=i)
+
+  button = tk.Button(root, width=12, height=1, bd=0, highlightthickness=0, bg="#1c1c1c", activebackground="#080808", fg="white", activeforeground="white", text="Reset", command=reset)
+  button.grid(row=7, column=3)
+
+def reset():
+  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
+
+  z1, x1, a1 = 0, 0, 0
+  z2, x2, a2 = 0, 0, 0
+  z3, x3, a3 = 0, 0, 0
+  pc.copy("")
+  text = ""
+
+  for i in range(0,4):
+    for j in range(1, 7):
+      if(j == 3 or j == 5):
+        continue
+      else:
+        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
+        c1.grid(row=j, column=i)
 
 def checkClip():
-  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x2, a3, dn, do
+  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
   a = text
   text = pc.paste().strip()
 
@@ -42,7 +75,6 @@ def checkClip():
 
       if(z != z1 and x != x1 and a != a1):
         x2, z2, a2 = x, z, a
-
         lst = [x2, z2, a2]
         for i in range(0,3):
           c3 = tk.Label(root, width=15, bg="#3F3F3F", text=lst[i], anchor="center", fg="white")
@@ -70,6 +102,8 @@ def checkClip():
         z1, x1, a1 = 0, 0, 0
         z2, x2, a2 = 0, 0, 0
         z3, x3, a3 = 0, 0, 0
+        pc.copy("")
+        text = ""
 
   root.after(50, checkClip)
 
@@ -79,26 +113,13 @@ root.title("EyeCalc")
 scwidth = root.winfo_screenwidth()
 scheight = root.winfo_screenheight()
 
-root.geometry(f"490x200+{scwidth}+0")
-s = ttk.Style()
-s.configure('My.TFrame', background="#262626")
-frm = ttk.Frame(root, style="My.TFrame")
+root.geometry(f"490x191+{scwidth}+0")
+frm = tk.Frame(root, bg="#262626")
 frm.place(height=250, width=500, x=0, y=0)
 frm.config()
 root.resizable(False, False)
 
-for i in range(0,4):
-  for j in range(0, 7):
-    if(j == 0):
-      c1 = tk.Label(root, width=15, bg="#3F3F3F", text=head[i], anchor="center", fg="#fc7474")
-      c1.grid(row=j, column=i)
-    elif(j == 3):
-      c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Nether :", anchor="center", fg="lime").grid(row=3, column=0)
-    elif(j == 5):
-      c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Overworld :", anchor="center", fg="yellow").grid(row=5, column=0)
-    else:
-      c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
-      c1.grid(row=j, column=i)
+setup()
 
 checkClip()
 

@@ -1,7 +1,11 @@
 #!/bin/python3
 
+import sys
 import pyperclip as pc
-import tkinter as tk
+from PyQt6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHBoxLayout, QFrame, QPushButton, QHeaderView
+from PyQt6.QtGui import QColor, QBrush
+from PyQt6.QtCore import QTimer, Qt
+from pynput import keyboard
 import math
 
 a, text = "", ""
@@ -10,28 +14,82 @@ z1, x1, a1 = 0, 0, 0
 z2, x2, a2 = 0, 0, 0
 z3, x3, a3 = 0, 0, 0
 dn, do = 0, 0
-head = ["X-Coord", "Z-Coord", "Angle", "Distance"]
+
+base = [["X-Coord", "Z-Coord", "Angle", "Distance"],
+        ["~", "~", "~", ""],
+        ["~", "~", "~", ""],
+        ["Nether :", "", "", ""],
+        ["~", "~", "~", "~"],
+        ["Overworld :", "", "", ""],
+        ["~", "~", "~", "~"]]
+
 d = pc.paste().strip().split()
 
 def setup():
   if(d.count("/execute") == 1 and len(d) == 11 and (c for c in d[6:] if type(float(c)) == '<class \'float\'>')):
     pc.copy("")
 
-  for i in range(0,4):
-    for j in range(0, 7):
-      if(j == 0):
-        c1 = tk.Label(root, width=15, bg="#3F3F3F", text=head[i], anchor="center", fg="#fc7474")
-        c1.grid(row=j, column=i)
-      elif(j == 3):
-        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Nether :", anchor="center", fg="lime").grid(row=3, column=0)
-      elif(j == 5):
-        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="Overworld :", anchor="center", fg="yellow").grid(row=5, column=0)
-      else:
-        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
-        c1.grid(row=j, column=i)
+  table.setRowCount(7)
+  table.setColumnCount(4)
 
-  button = tk.Button(root, width=12, height=1, bd=0, highlightthickness=0, bg="#1c1c1c", activebackground="#080808", fg="white", activeforeground="white", text="Reset", command=reset)
-  button.grid(row=7, column=3)
+  layout.addWidget(table)
+  # layout.addWidget(button)
+  # layout.addStretch()
+  layout.setContentsMargins(0, 0, 0, 0)
+  layout.setSpacing(0)
+  window.setLayout(layout)
+
+  table.verticalHeader().setVisible(False)
+  table.horizontalHeader().setVisible(False)
+  table.verticalScrollBar().hide()
+  table.horizontalScrollBar().hide()
+  table.setShowGrid(False)
+
+  table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+  table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+  button.setFixedSize(100, 30)
+  button.setStyleSheet("""
+            QPushButton {
+                background-color: #1c1c1c;
+                color: white;
+                border: none;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: #080808;
+            }
+            QPushButton:pressed {
+                background-color: red;
+            }
+        """)
+  button.clicked.connect(reset)
+  button_layout.addWidget(button)
+  layout.addWidget(but_cont)
+
+  for i in range(0, 4):
+    for j in range(0, 7):
+      t = base[j][i]
+
+      item = QTableWidgetItem(t)
+      item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+      item.setFlags(Qt.ItemFlag.ItemIsEditable)
+
+      if(j == 0):
+        item.setForeground(QBrush(QColor("red")))
+        item.setBackground(QBrush(QColor("#191919")))
+      elif(j == 3):
+        item.setForeground(QBrush(QColor("lime")))
+        item.setBackground(QBrush(QColor("#191919")))
+      elif(j == 5):
+        item.setForeground(QBrush(QColor("yellow")))
+        item.setBackground(QBrush(QColor("#191919")))
+
+      table.setItem(j, i, item)
+
+  timer = QTimer(window)
+  timer.timeout.connect(checkClip)
+  timer.start(50)
 
 def reset():
   global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
@@ -41,14 +99,16 @@ def reset():
   z3, x3, a3 = 0, 0, 0
   pc.copy("")
   text = ""
-
   for i in range(0,4):
     for j in range(1, 7):
       if(j == 3 or j == 5):
         continue
       else:
-        c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
-        c1.grid(row=j, column=i)
+        t = base[j][i]
+        item = QTableWidgetItem(t)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        item.setFlags(Qt.ItemFlag.ItemIsEditable)
+        table.setItem(j, i, item)
 
 def checkClip():
   global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
@@ -61,24 +121,33 @@ def checkClip():
       x, z, a = float(b[6]), float(b[8]), float(b[9])
       if(z1 == 0 and x1 == 0 and a1 == 0):
         x1, z1, a1 = x, z, a
-        lst = [x1, z1, a1, "~"]
-        for i in range(0,4):
+        lst = [x1, z1, a1, ""]
+        for i in range(0, 4):
           for j in range(1, 7):
             if(j == 1):
-              c2 = tk.Label(root, width=15, bg="#3F3F3F", text=lst[i], anchor="center", fg="white")
-              c2.grid(row=1, column=i)
+              item = QTableWidgetItem(str(lst[i]))
+              item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+              item.setFlags(Qt.ItemFlag.ItemIsEditable)
+              item.setForeground(QBrush(QColor("white")))
+              table.setItem(1, i, item)
             elif(j == 3 or j == 5):
               continue
             else:
-              c1 = tk.Label(root, width=15, bg="#3F3F3F", text="~", anchor="center", fg="white")
-              c1.grid(row=j, column=i)
+              t = base[j][i]
+              item = QTableWidgetItem(t)
+              item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+              item.setFlags(Qt.ItemFlag.ItemIsEditable)
+              table.setItem(j, i, item)
 
       if(z != z1 and x != x1 and a != a1):
         x2, z2, a2 = x, z, a
-        lst = [x2, z2, a2]
-        for i in range(0,3):
-          c3 = tk.Label(root, width=15, bg="#3F3F3F", text=lst[i], anchor="center", fg="white")
-          c3.grid(row=2, column=i)
+        lst = [x2, z2, a2, ""]
+        for i in range(0, 4):
+          item = QTableWidgetItem(str(lst[i]))
+          item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+          item.setFlags(Qt.ItemFlag.ItemIsEditable)
+          item.setForeground(QBrush(QColor("white")))
+          table.setItem(2, i, item)
 
         m1 = math.tan(-a1 * math.pi / 180)
         m2 = math.tan(-a2 * math.pi / 180)
@@ -90,37 +159,52 @@ def checkClip():
         dn = do / 8
 
         lst = [round(x3/8), round(z3/8), a1, round(dn)]
-        for i in range(0,4):
-          c4 = tk.Label(root, width=15, bg="#3F3F3F", text=lst[i], anchor="center", fg="lime")
-          c4.grid(row=4, column=i)
+        for i in range(0, 4):
+          item = QTableWidgetItem(str(lst[i]))
+          item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+          item.setFlags(Qt.ItemFlag.ItemIsEditable)
+          item.setForeground(QBrush(QColor("lime")))
+          table.setItem(4, i, item)
 
         lst = [round(x3), round(z3), a1, round(do)]
-        for i in range(0,4):
-          c5 = tk.Label(root, width=15, bg="#3F3F3F", text=lst[i], anchor="center", fg="yellow")
-          c5.grid(row=6, column=i)
-        
+        for i in range(0, 4):
+          item = QTableWidgetItem(str(lst[i]))
+          item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+          item.setFlags(Qt.ItemFlag.ItemIsEditable)
+          item.setForeground(QBrush(QColor("yellow")))
+          table.setItem(6, i, item)
+
         z1, x1, a1 = 0, 0, 0
         z2, x2, a2 = 0, 0, 0
         z3, x3, a3 = 0, 0, 0
         pc.copy("")
         text = ""
 
-  root.after(50, checkClip)
+app = QApplication(sys.argv)
+window = QWidget()
+window.setWindowTitle("EyeCalc")
 
-root = tk.Tk()
-root.title("EyeCalc")
+scwidth = window.screen().size().width()
+scheight = window.screen().size().height()
 
-scwidth = root.winfo_screenwidth()
-scheight = root.winfo_screenheight()
+window.setGeometry(scwidth, 40, 400, 190)
+window.setFixedSize(400, 190)
+window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+window.show()
 
-root.geometry(f"490x191+{scwidth}+0")
-frm = tk.Frame(root, bg="#262626")
-frm.place(height=250, width=500, x=0, y=0)
-frm.config()
-root.resizable(False, False)
+layout = QVBoxLayout(window)
+
+but_cont = QWidget()
+button_layout = QHBoxLayout(but_cont)
+button_layout.setContentsMargins(0, 0, 0, 0)
+button_layout.addStretch()
+button = QPushButton("Reset")
+
+table = QTableWidget()
 
 setup()
 
-checkClip()
+# checkClip()
 
-root.mainloop()
+sys.exit(app.exec())

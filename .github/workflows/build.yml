@@ -25,8 +25,8 @@ jobs:
 
     - name: build with pyinstaller
       run: |
-        pyinstaller --onefile --noconsole --icon=app.ico --name "EyeCalc" eye.py
-
+        pyinstaller --onefile --noconsole --icon=app.ico --add-data "app.ico;." --name "EyeCalc" eye.py
+        
     - name: upload
       uses: actions/upload-artifact@v4
       with:
@@ -52,7 +52,7 @@ jobs:
 
     - name: build with pyinstaller
       run: |
-        pyinstaller --onefile --noconsole --icon=app.ico --name "EyeCalc" eye.py
+        pyinstaller --onefile --noconsole --hidden-import pynput.keyboard._xorg --hidden-import pynput.mouse._xorg --add-data "app.ico:." --name "EyeCalc" eye.py
 
     - name: upload
       uses: actions/upload-artifact@v4 

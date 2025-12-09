@@ -21,6 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        pip install pillow
 
     - name: build with pyinstaller
       run: |
@@ -47,6 +48,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        pip install pillow
 
     - name: build with pyinstaller
       run: |

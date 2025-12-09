@@ -34,8 +34,9 @@ class Comm(QObject):
 comm = Comm()
 
 def titlebar():
-  bar.setFixedHeight(30)
-  bar_layout.setContentsMargins(0,0,10,0)
+  bar.setFixedSize(400, 30)
+  bar.setStyleSheet("background-color: #222222")
+  bar_layout.setContentsMargins(0, 0, 10, 0)
   bar_layout.setSpacing(10)
 
   bar_layout.addStretch()
@@ -117,7 +118,6 @@ def reset():
 def showwindow():
   window.setWindowState(Qt.WindowState.WindowNoState)
   window.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-  window.setAttribute(Qt.WidgetAttribute.WA_X11DoNotAcceptFocus, True)
   window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
   QTimer.singleShot(10, lambda: window.show())
 
@@ -183,7 +183,7 @@ def setup():
       item.setFlags(Qt.ItemFlag.ItemIsEditable)
 
       if(j == 0):
-        item.setForeground(QBrush(QColor("red")))
+        item.setForeground(QBrush(QColor("#ffffff")))
         item.setBackground(QBrush(QColor("#191919")))
       elif(j == 3):
         item.setForeground(QBrush(QColor("lime")))
@@ -277,10 +277,10 @@ window.setWindowTitle("EyeCalc")
 
 scwidth = window.screen().size().width()
 scheight = window.screen().size().height()
-X, Y = scwidth, 40
 
 window.setGeometry(scwidth - 400, 40, 400, 220)
 window.setFixedSize(400, 220)
+window.setStyleSheet("background-color: #272727")
 window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
 window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
 window.show()

@@ -2,9 +2,10 @@
 
 import sys
 import pyperclip as pc
-from PyQt6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHBoxLayout, QFrame, QPushButton, QHeaderView
+from PyQt6.QtWidgets import (QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
+                            QHBoxLayout, QFrame, QPushButton, QHeaderView, QLabel)
 from PyQt6.QtGui import QColor, QBrush
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QTimer, Qt, QPoint, QObject, pyqtSignal
 from pynput import keyboard
 import math
 
@@ -14,6 +15,7 @@ z1, x1, a1 = 0, 0, 0
 z2, x2, a2 = 0, 0, 0
 z3, x3, a3 = 0, 0, 0
 dn, do = 0, 0
+drag_pos = None
 
 base = [["X-Coord", "Z-Coord", "Angle", "Distance"],
         ["~", "~", "~", ""],
@@ -25,6 +27,124 @@ base = [["X-Coord", "Z-Coord", "Angle", "Distance"],
 
 d = pc.paste().strip().split()
 
+class Comm(QObject):
+    toggle = pyqtSignal()
+    resetSig = pyqtSignal()
+
+comm = Comm()
+
+def titlebar():
+  bar.setFixedHeight(30)
+  bar_layout.setContentsMargins(0,0,10,0)
+  bar_layout.setSpacing(10)
+
+  bar_layout.addStretch()
+
+  title = QLabel("EyeCalc", bar)
+  title.setGeometry(0, 0, 400, 30)
+  title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+  title.setStyleSheet("color: white; font-weight: bold; border: none;")
+  bar_layout.addStretch()
+
+  butsize = 20
+
+  minbut = QPushButton("─")
+  minbut.clicked.connect(minbut_clicked)
+  minbut.setFixedSize(butsize, butsize)
+  minbut.setStyleSheet("""
+    QPushButton {background-color: transparent; color: white; border: none; border-radius: 10px;}
+    QPushButton:hover {background-color: #444; border-radius: 10px;}
+    QPushButton:pressed {background-color: #919191; border-radius: 10px;}""")
+  bar_layout.addWidget(minbut)
+
+  closebut = QPushButton("🗙")
+  closebut.clicked.connect(closebut_clicked)
+  closebut.setFixedSize(butsize, butsize)
+  closebut.setStyleSheet("""
+    QPushButton {background-color: #bf433f; color: black; border: none; border-radius: 10px;}
+    QPushButton:hover {background-color: #ff1100; border-radius: 10px;}
+    QPushButton:pressed {background-color: #9d00ff; border-radius: 10px;}""")
+  bar_layout.addWidget(closebut)
+
+  bar.mousePressEvent = mousePressEvent
+  bar.mouseMoveEvent = mouseMoveEvent
+  bar.mouseReleaseEvent = mouseReleaseEvent
+
+  layout.addWidget(bar)
+
+def closebut_clicked():
+  window.close()
+
+def minbut_clicked():
+  hidewindow()
+
+def mousePressEvent(event):
+  global drag_pos
+  if event.button() == Qt.MouseButton.LeftButton:
+    drag_pos = event.globalPosition().toPoint() - window.pos()
+    event.accept()
+
+def mouseMoveEvent(event):
+  global drag_pos
+  if event.buttons() == Qt.MouseButton.LeftButton and drag_pos:
+    window.move(event.globalPosition().toPoint() - drag_pos)
+    event.accept()
+
+def mouseReleaseEvent(event):
+  global drag_pos
+  drag_pos = None
+  event.accept()
+
+def reset():
+  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
+
+  z1, x1, a1 = 0, 0, 0
+  z2, x2, a2 = 0, 0, 0
+  z3, x3, a3 = 0, 0, 0
+  pc.copy("")
+  text = ""
+  for i in range(0,4):
+    for j in range(1, 7):
+      if(j == 3 or j == 5):
+        continue
+      else:
+        t = base[j][i]
+        item = QTableWidgetItem(t)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        item.setFlags(Qt.ItemFlag.ItemIsEditable)
+        table.setItem(j, i, item)
+
+def showwindow():
+  window.setWindowState(Qt.WindowState.WindowNoState)
+  window.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+  window.setAttribute(Qt.WidgetAttribute.WA_X11DoNotAcceptFocus, True)
+  window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+  QTimer.singleShot(10, lambda: window.show())
+
+def hidewindow():
+  window.showMinimized()
+
+def togglevis():
+  if(window.isMinimized() or not window.isVisible()):
+    showwindow()
+  else:
+    hidewindow()
+
+comm.toggle.connect(togglevis)
+comm.resetSig.connect(reset)
+
+def on_reset_hotkey():
+  comm.resetSig.emit()
+
+def on_toggle_hotkey():
+  comm.toggle.emit()
+
+hotkeys = keyboard.GlobalHotKeys(
+  {"<ctrl>+[": on_reset_hotkey,
+   "<ctrl>+]": on_toggle_hotkey})
+
+hotkeys.start()
+
 def setup():
   if(d.count("/execute") == 1 and len(d) == 11 and (c for c in d[6:] if type(float(c)) == '<class \'float\'>')):
     pc.copy("")
@@ -33,8 +153,6 @@ def setup():
   table.setColumnCount(4)
 
   layout.addWidget(table)
-  # layout.addWidget(button)
-  # layout.addStretch()
   layout.setContentsMargins(0, 0, 0, 0)
   layout.setSpacing(0)
   window.setLayout(layout)
@@ -49,20 +167,9 @@ def setup():
   table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
   button.setFixedSize(100, 30)
-  button.setStyleSheet("""
-            QPushButton {
-                background-color: #1c1c1c;
-                color: white;
-                border: none;
-                padding: 5px;
-            }
-            QPushButton:hover {
-                background-color: #080808;
-            }
-            QPushButton:pressed {
-                background-color: red;
-            }
-        """)
+  button.setStyleSheet("""QPushButton {background-color: #1c1c1c; color: white; border: none; padding: 5px;}
+                          QPushButton:hover {background-color: #080808;}
+                          QPushButton:pressed {background-color: red;}""")
   button.clicked.connect(reset)
   button_layout.addWidget(button)
   layout.addWidget(but_cont)
@@ -91,33 +198,17 @@ def setup():
   timer.timeout.connect(checkClip)
   timer.start(50)
 
-def reset():
-  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
-
-  z1, x1, a1 = 0, 0, 0
-  z2, x2, a2 = 0, 0, 0
-  z3, x3, a3 = 0, 0, 0
-  pc.copy("")
-  text = ""
-  for i in range(0,4):
-    for j in range(1, 7):
-      if(j == 3 or j == 5):
-        continue
-      else:
-        t = base[j][i]
-        item = QTableWidgetItem(t)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        item.setFlags(Qt.ItemFlag.ItemIsEditable)
-        table.setItem(j, i, item)
-
 def checkClip():
   global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
   a = text
   text = pc.paste().strip()
-
   if(text != a):
     b = text.split()
     if(b.count("/execute") == 1 and len(b) == 11 and (c for c in b[6:] if type(float(c)) == '<class \'float\'>')):
+      if(window.isMinimized() or not window.isVisible()):
+        showwindow()
+      else:
+        pass
       x, z, a = float(b[6]), float(b[8]), float(b[9])
       if(z1 == 0 and x1 == 0 and a1 == 0):
         x1, z1, a1 = x, z, a
@@ -186,14 +277,18 @@ window.setWindowTitle("EyeCalc")
 
 scwidth = window.screen().size().width()
 scheight = window.screen().size().height()
+X, Y = scwidth, 40
 
-window.setGeometry(scwidth, 40, 400, 190)
-window.setFixedSize(400, 190)
-window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
-window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+window.setGeometry(scwidth - 400, 40, 400, 220)
+window.setFixedSize(400, 220)
+window.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
+window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
 window.show()
 
 layout = QVBoxLayout(window)
+
+bar = QWidget()
+bar_layout = QHBoxLayout(bar)
 
 but_cont = QWidget()
 button_layout = QHBoxLayout(but_cont)
@@ -203,8 +298,8 @@ button = QPushButton("Reset")
 
 table = QTableWidget()
 
-setup()
+titlebar()
 
-# checkClip()
+setup()
 
 sys.exit(app.exec())

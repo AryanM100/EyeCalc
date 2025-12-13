@@ -35,14 +35,27 @@ In Linux, just make the binary file executable by using `chmod +x` or check "All
 ```bash
 git clone https://github.com/AryanM100/EyeCalc.git
 cd EyeCalc
+```
+```bash
+python -m venv env
 
+# Windows (Command Prompt)
+env\Scripts\activate
+
+# Linux
+source env/bin/activate
+```
+```bash
 pip install -r requirements.txt
-pip install pyinstaller pillow
-
+```
+```bash
 python eye.py
 ```
 
 ### Build the executable
+```bash
+pip install pyinstaller pillow
+```
 **Windows :**
 ```bash
 pyinstaller --onefile --noconsole --icon=app.ico --add-data "app.ico;." --name "EyeCalc" eye.py

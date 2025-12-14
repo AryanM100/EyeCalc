@@ -17,7 +17,9 @@ z, x, a = 0, 0, 0
 z1, x1, a1 = 0, 0, 0
 z2, x2, a2 = 0, 0, 0
 z3, x3, a3 = 0, 0, 0
-dn, do = 0, 0
+dn, do, dp = 0, 0, 0
+last = 0
+first = []
 drag_pos = None
 pf = platform.system()
 
@@ -114,23 +116,31 @@ def mouseReleaseEvent(event):
   event.accept()
 
 def reset():
-  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
+  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do, last, first
 
   z1, x1, a1 = 0, 0, 0
   z2, x2, a2 = 0, 0, 0
   z3, x3, a3 = 0, 0, 0
   pc.copy("")
   text = ""
-  for i in range(0,4):
+
+  if(last == 2):
+    x1, z1, a1 = first[:3]
+  
+  for i in range(0, 4):
     for j in range(1, 7):
       if(j == 3 or j == 5):
         continue
       else:
+        if(last == 2 and j == 1):
+          continue
         t = base[j][i]
         item = QTableWidgetItem(t)
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         item.setForeground(QBrush(QColor("gray")))
         table.setItem(j, i, item)
+
+  last = 1
 
 def showwindow():
   if(pf == "Windows"):
@@ -218,7 +228,7 @@ def setup():
   timer.start(50)
 
 def checkClip():
-  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do
+  global a, text, z, x, a, z1, x1, a1, z2, x2, a2, z3, x3, a3, dn, do, last, first
   a = text
   text = pc.paste().strip()
   if(text != a):
@@ -230,8 +240,10 @@ def checkClip():
         pass
       x, z, a = float(b[6]), float(b[8]), float(b[9])
       if(z1 == 0 and x1 == 0 and a1 == 0):
+        last = 1
         x1, z1, a1 = x, z, a
         lst = [x1, z1, a1, ""]
+        first = lst
         for i in range(0, 4):
           for j in range(1, 7):
             if(j == 1):
@@ -249,8 +261,10 @@ def checkClip():
               table.setItem(j, i, item)
 
       if(z != z1 and x != x1 and a != a1):
+        last = 2
         x2, z2, a2 = x, z, a
-        lst = [x2, z2, a2, ""]
+        dp = math.sqrt((x2 - x1)**2 + (z2 - z1)**2)
+        lst = [x2, z2, a2, round(dp)]
         for i in range(0, 4):
           item = QTableWidgetItem(str(lst[i]))
           item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
